@@ -1,9 +1,18 @@
+const neo4j = require('neo4j-driver');
 const express = require("express");
 const bodyParser = require("body-parser");
+
 const { driver } = require("./db");
+
 const app = express();
 const port = 3000;
 app.use(bodyParser.json());
+
+const readline = require("readline");
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout
+});
 
 async function testConnection() {
   const session = driver.session();
@@ -17,15 +26,11 @@ async function testConnection() {
     await session.close();
   }
 }
-testConnection();
 
-// Rota de teste
 app.get("/", (req, res) => {
   res.send("Servidor funcionando");
 });
 
-
-// Rota para criar um usuário
 app.post("/users", async (req, res) => {
   const { name, age } = req.body;
   const session = driver.session();
@@ -43,7 +48,6 @@ app.post("/users", async (req, res) => {
   }
 });
 
-// Rota para listar todos os usuários
 app.get("/users", async (req, res) => {
   const session = driver.session();
 
@@ -57,7 +61,6 @@ app.get("/users", async (req, res) => {
   }
 });
 
-//Rota para deletar um usuário
 app.delete("/users/:name", async (req, res) => {
   const { name } = req.params;
   const session = driver.session();
@@ -72,7 +75,6 @@ app.delete("/users/:name", async (req, res) => {
   }
 });
 
-// Rota para atualizar um usuário
 app.put("/users/:name", async (req, res) => {
   const { name } = req.params;
   const { age } = req.body;
@@ -91,8 +93,96 @@ app.put("/users/:name", async (req, res) => {
   }
 });
 
+// Função para exibir o menu interativo e processar a entrada do usuário
+function displayMenu() {
+  console.log(`
+  == CRUD Neo4j ==
+  1. Criar Usuário
+  2. Ler Usuário
+  3. Atualizar Usuário
+  4. Excluir Usuário
+  5. Exibir Todos os Usuários
+  0. Sair
+  `);
 
+  rl.question("Escolha uma opção: ", async (option) => {
+    switch (option) {
+      case "1":
+        // Criar Usuário
+        rl.question("Nome do usuário: ", async (name) => {
+          rl.question("Idade do usuário: ", async (age) => {
+            const response = await fetch("http://localhost:3000/users", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ name, age }),
+            });
+            const result = await response.text();
+            console.log(result);
+            displayMenu();
+          });
+        });
+        break;
+      case "2":
+        // Ler Usuário
+        rl.question("Nome do usuário: ", async (name) => {
+          const response = await fetch(`http://localhost:3000/users/${name}`);
+          const result = await response.json();
+          console.log(result);
+          displayMenu();
+        });
+        break;
+      case "3":
+        // Atualizar Usuário
+        rl.question("Nome do usuário: ", async (name) => {
+          rl.question("Nova idade do usuário: ", async (age) => {
+            const response = await fetch(`http://localhost:3000/users/${name}`, {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ age }),
+            });
+            const result = await response.text();
+            console.log(result);
+            displayMenu();
+          });
+        });
+        break;
+      case "4":
+        // Excluir Usuário
+        rl.question("Nome do usuário: ", async (name) => {
+          const response = await fetch(`http://localhost:3000/users/${name}`, {
+            method: "DELETE",
+          });
+          const result = await response.text();
+          console.log(result);
+          displayMenu();
+        });
+        break;
+      case "5":
+        // Exibir Todos os Usuários
+        const response = await fetch("http://localhost:3000/users");
+        const result = await response.json();
+        console.log(result);
+        displayMenu();
+        break;
+      case "0":
+        rl.close();
+        process.exit(0);
+        break;
+      default:
+        console.log("Opção inválida.");
+        displayMenu();
+        break;
+    }
+  });
+}
+
+// Inicialização do servidor
 app.listen(port, () => {
   console.log(`Servidor rodando em http://localhost:${port}`);
+  testConnection(); // Testar conexão ao iniciar o servidor
+  displayMenu(); // Exibir o menu interativo
 });
-
