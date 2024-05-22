@@ -45,6 +45,8 @@ npm run start
 
 ### Rotas da API
 
+Para testar as rotas da API é nescessário utilizar um interface preparada para isso, como o POSTMAN, Insomnia ou uma extensão do VSCODE chamda Thunder Client
+
 - GET/users Retorna todos os usuários cadastrados.
 - POST /users: Cria um novo usuário.
 Parâmetros: name (string), age (number).
