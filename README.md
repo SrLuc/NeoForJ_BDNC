@@ -55,6 +55,10 @@ Parâmetros: name (string), age (number).
 - DELETE /users/:name: Deleta um usuário pelo nome.
 Parâmetros: name (string).
 
+### CRUD
+
+Este CRUD também pode ser manipulado diretamente no terminal seguindo as opções que foram pedidas na descrição da atividade, no entando ela só funcionará se o Banco de Dados Neo4J estiver aberto e rodando corretamente com o Usuário e Senha correspondente.
+
 
 ### Testando a conexão
 
